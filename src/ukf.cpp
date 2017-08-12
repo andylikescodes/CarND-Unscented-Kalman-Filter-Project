@@ -25,10 +25,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 1;
+  std_a_ = 0.5;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 1;
+  std_yawdd_ = 0.2;
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -68,7 +68,7 @@ UKF::UKF() {
   use_radar_ = false;
   n_x_ = 5;
   n_aug_ = 7;
-  lambda_ = 3.0 - n_x_;
+  lambda_ = 3.0 - n_aug_;
 
   Xsig_pred_ = MatrixXd(n_x_, 2*n_aug_+1);
 
@@ -169,6 +169,9 @@ void UKF::Prediction(double delta_t) {
     Xsig_aug.col(i) = x_aug + coef*A.col(i-1);
     Xsig_aug.col(i+n_aug_) = x_aug - coef*A.col(i-1);
   }
+
+  cout << Xsig_aug << endl;
+  cout << endl;
   
 
   /***********************************************************
@@ -185,7 +188,7 @@ void UKF::Prediction(double delta_t) {
     
     double px_p, py_p, v_p, yaw_p, yawd_p;
 
-    if (fabs(yawd) > 0.0001){
+    if (fabs(yawd) > 0.001){
       px_p = p_x + v/yawd * ( sin (yaw + yawd*delta_t) - sin(yaw));
       py_p = p_y + v/yawd * ( cos(yaw) - cos(yaw+yawd*delta_t) );
     } else {
@@ -207,6 +210,8 @@ void UKF::Prediction(double delta_t) {
     Xsig_pred_(3,i) = yaw_p;
     Xsig_pred_(4,i) = yawd_p;
   }
+
+  // cout << Xsig_pred_ << endl;
   
   /***********************************************************
   * Predicted Sigma Points Mean anc Covariance
@@ -421,6 +426,11 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   * NIS for RADAR
   **************************************************************/
   NIS_R_ = z_diff.transpose() * S.inverse() * z_diff;
+  // cout << "RADAR - Z_pred: " << endl;
+  // cout << z_pred << endl;
+  // cout << "RADAR - Z: " << endl;
+  // cout << z << endl;
+
   cout << "NIS for Radar" << endl;
   cout << NIS_R_ << endl;
 }
