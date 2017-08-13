@@ -25,10 +25,10 @@ UKF::UKF() {
   P_ = MatrixXd(5, 5);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 0.5;
+  std_a_ = 1;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.2;
+  std_yawdd_ = 1;
 
   // Laser measurement noise standard deviation position1 in m
   std_laspx_ = 0.15;
@@ -55,9 +55,9 @@ UKF::UKF() {
 
   Hint: one or more values initialized above might be wildly off...
   */
-  x_ << 1, 1, 1, 1, 1;
-  P_ << 1, 0, 0, 0, 0,
-        0, 1, 0, 0, 0,
+  x_ << 1, 1, 0.5, 0.5, 0.5;
+  P_ << 0.15, 0, 0, 0, 0,
+        0, 0.15, 0, 0, 0,
         0, 0, 1, 0, 0,
         0, 0, 0, 1, 0,
         0, 0, 0, 0, 1;
@@ -170,10 +170,6 @@ void UKF::Prediction(double delta_t) {
     Xsig_aug.col(i+n_aug_) = x_aug - coef*A.col(i-1);
   }
 
-  cout << Xsig_aug << endl;
-  cout << endl;
-  
-
   /***********************************************************
   * Sigma Points Prediction
   ************************************************************/
@@ -195,6 +191,10 @@ void UKF::Prediction(double delta_t) {
         px_p = p_x + v*delta_t*cos(yaw);
         py_p = p_y + v*delta_t*sin(yaw);
     }
+
+    v_p = v;
+    yaw_p = yaw + yawd*delta_t;
+    yawd_p = yawd;
         //add noise
     px_p = px_p + 0.5*nu_a*delta_t*delta_t * cos(yaw);
     py_p = py_p + 0.5*nu_a*delta_t*delta_t * sin(yaw);
@@ -318,8 +318,8 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   * NIS for Lidar
   **************************************************************/
   NIS_L_ = z_diff.transpose() * S.inverse() * z_diff;
-  cout << "NIS for Lidar" << endl;
-  cout << NIS_L_ << endl;
+  // cout << "NIS for Lidar" << endl;
+  // cout << NIS_L_ << endl;
 }
 
 /**
